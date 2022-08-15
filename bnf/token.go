@@ -50,6 +50,12 @@ func tokenizeString(s string) (*TokenStream, error) {
 
 	for pos < end {
 		switch s[pos] {
+		case '#':
+			// Skip all characters until the end of the line
+			for pos < end && s[pos] != '\n' {
+				pos++
+			}
+
 		case ':':
 			if pos+3 >= len(s) {
 				return stream, fmt.Errorf("expected '::=', but reached end of input")

@@ -44,6 +44,8 @@ func TestTokenize(t *testing.T) {
 		{str: `<aaa> ::= "bbb"
 <aaa>`, toks: []Token{nonterm, eq, term, eol, nonterm}},
 		{str: `<aaa> ::= "bbb" | "d\"ef"`, toks: []Token{nonterm, eq, term, bar, termEsc}},
+		{str: `# ignore me pls`, toks: []Token{}},
+		{str: `<aaa> ::=#"bbb"`, toks: []Token{nonterm, eq}},
 	}
 
 	for _, test := range tests {
