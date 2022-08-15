@@ -70,7 +70,7 @@ func tokenizeString(s string, stream *TokenStream) error {
 			}
 
 			if s[pos:pos+3] != "::=" {
-				return fmt.Errorf("expected '::=', got '%s...'", s[pos:3])
+				return fmt.Errorf("expected '::=', got '%s...'", s[pos:pos+3])
 			}
 
 			stream.Push(Token{Type: TokenOpEqual})

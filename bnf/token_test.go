@@ -34,25 +34,29 @@ func TestTokenize(t *testing.T) {
 	})
 
 	type tokenTest struct {
-		str  string
-		toks []Token
+		errfn assert.ErrorAssertionFunc
+		str   string
+		toks  []Token
 	}
 
 	tests := []tokenTest{
-		{str: `<aaa> ::= "bbb"`, toks: []Token{nonterm, eq, term}},
-		{str: `<ab\>c> ::= "d\"ef"`, toks: []Token{nontermEsc, eq, termEsc}},
-		{str: `<aaa> ::= "bbb"
+		{errfn: assert.NoError, str: `<aaa> ::= "bbb"`, toks: []Token{nonterm, eq, term}},
+		{errfn: assert.NoError, str: `<ab\>c> ::= "d\"ef"`, toks: []Token{nontermEsc, eq, termEsc}},
+		{errfn: assert.NoError, str: `<aaa> ::= "bbb"
 <aaa>`, toks: []Token{nonterm, eq, term, eol, nonterm}},
-		{str: `<aaa> ::= "bbb" | "d\"ef"`, toks: []Token{nonterm, eq, term, bar, termEsc}},
-		{str: `# ignore me pls`, toks: []Token{}},
-		{str: `<aaa> ::=#"bbb"`, toks: []Token{nonterm, eq}},
+		{errfn: assert.NoError, str: `<aaa> ::= "bbb" | "d\"ef"`, toks: []Token{nonterm, eq, term, bar, termEsc}},
+		{errfn: assert.NoError, str: `# ignore me pls`, toks: []Token{}},
+		{errfn: assert.NoError, str: `<aaa> ::=#"bbb"`, toks: []Token{nonterm, eq}},
+		{errfn: assert.Error, str: `<aaa> := "bbb"`, toks: []Token{nonterm}},
+		{errfn: assert.Error, str: `<aaa> = what???`, toks: []Token{nonterm}},
+		{errfn: assert.Error, str: `::::==`, toks: []Token{}},
 	}
 
 	for _, test := range tests {
 		t.Run(test.str, func(t *testing.T) {
 			toks, err := Tokenize(strings.NewReader(test.str))
 
-			assert.NoError(t, err)
+			test.errfn(t, err)
 			assert.NotNil(t, toks)
 			assert.Equal(t, len(test.toks), len(toks.buf))
 
