@@ -8,10 +8,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type ErrReader int
+type errReader int
 
-func (er ErrReader) Read(b []byte) (int, error) {
-	return 0, errors.New("ErrReader")
+func (er errReader) Read(b []byte) (int, error) {
+	return 0, errors.New("errReader")
 }
 
 var (
@@ -26,10 +26,10 @@ var (
 
 func TestTokenize(t *testing.T) {
 	t.Run("failed read", func(t *testing.T) {
-		var r ErrReader
+		var r errReader
 
 		toks, err := Tokenize(r)
-		assert.Nil(t, toks)
+		assert.NotNil(t, toks)
 		assert.Error(t, err)
 	})
 

@@ -27,25 +27,33 @@ const (
 	TokenEOL
 )
 
+// Tokenize will take any input (accessible from a Reader) and produce a
+// token stream. If an error occurs while parsing, it will return a
+// partial token stream.
 func Tokenize(r io.Reader) (*TokenStream, error) {
+	stream := new(TokenStream)
+
 	buf, err := io.ReadAll(r)
 	if err != nil {
-		return nil, err
+		return stream, err
 	}
 
-	return tokenizeString(string(buf))
+	err = tokenizeString(string(buf), stream)
+	return stream, err
 }
 
-func tokenizeString(s string) (*TokenStream, error) {
+// tokenizeString will produce a stream of tokens from a given string.
+// If an error is occurred, it will produce a partial token stream that
+// contains everything until the error.
+func tokenizeString(s string, stream *TokenStream) error {
 	var (
-		stream = new(TokenStream)
-		pos    = 0
-		end    = len(s)
+		pos = 0
+		end = len(s)
 	)
 
 	// Nothing to do
 	if end == 0 {
-		return stream, nil
+		return nil
 	}
 
 	for pos < end {
@@ -58,11 +66,11 @@ func tokenizeString(s string) (*TokenStream, error) {
 
 		case ':':
 			if pos+3 >= len(s) {
-				return stream, fmt.Errorf("expected '::=', but reached end of input")
+				return fmt.Errorf("expected '::=', but reached end of input")
 			}
 
 			if s[pos:pos+3] != "::=" {
-				return stream, fmt.Errorf("expected '::=', got '%s...'", s[pos:3])
+				return fmt.Errorf("expected '::=', got '%s...'", s[pos:3])
 			}
 
 			stream.Push(Token{Type: TokenOpEqual})
@@ -77,7 +85,7 @@ func tokenizeString(s string) (*TokenStream, error) {
 			// mark
 			val, nextPos, err := until(s, pos+1, s[pos])
 			if err != nil {
-				return stream, err
+				return err
 			}
 
 			stream.Push(Token{Type: TokenTerminal, Value: val})
@@ -87,7 +95,7 @@ func tokenizeString(s string) (*TokenStream, error) {
 			// Define a nonterminal symbol as '<...>'
 			val, nextPos, err := until(s, pos+1, '>')
 			if err != nil {
-				return stream, err
+				return err
 			}
 
 			stream.Push(Token{Type: TokenNonterminal, Value: val})
@@ -103,11 +111,11 @@ func tokenizeString(s string) (*TokenStream, error) {
 			pos++
 
 		default:
-			return stream, fmt.Errorf("unexpected character '%c'", s[pos])
+			return fmt.Errorf("unexpected character '%c'", s[pos])
 		}
 	}
 
-	return stream, nil
+	return nil
 }
 
 // until returns some encapsulated string (everything _until_ some
