@@ -19,8 +19,7 @@ type TokenStream struct {
 }
 
 const (
-	TokenComment = iota
-	TokenTerminal
+	TokenTerminal = iota
 	TokenNonterminal
 	TokenOpEqual
 	TokenOpBar
