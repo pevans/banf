@@ -15,7 +15,7 @@ type Token struct {
 
 // A TokenStream is a set of tokens
 type TokenStream struct {
-	buf []Token
+	buf []*Token
 }
 
 const (
@@ -72,11 +72,11 @@ func tokenizeString(s string, stream *TokenStream) error {
 				return fmt.Errorf("expected '::=', got '%s...'", s[pos:pos+3])
 			}
 
-			stream.Push(Token{Type: TokenOpEqual})
+			stream.Push(&Token{Type: TokenOpEqual})
 			pos += 3
 
 		case '|':
-			stream.Push(Token{Type: TokenOpBar})
+			stream.Push(&Token{Type: TokenOpBar})
 			pos++
 
 		case '"', '\'':
@@ -87,7 +87,7 @@ func tokenizeString(s string, stream *TokenStream) error {
 				return err
 			}
 
-			stream.Push(Token{Type: TokenTerminal, Value: val})
+			stream.Push(&Token{Type: TokenTerminal, Value: val})
 			pos = nextPos
 
 		case '<':
@@ -97,7 +97,7 @@ func tokenizeString(s string, stream *TokenStream) error {
 				return err
 			}
 
-			stream.Push(Token{Type: TokenNonterminal, Value: val})
+			stream.Push(&Token{Type: TokenNonterminal, Value: val})
 			pos = nextPos
 
 		case ' ', '\t', '\r':
@@ -106,7 +106,7 @@ func tokenizeString(s string, stream *TokenStream) error {
 
 		case '\n':
 			// Newlines are significant, and have their own token
-			stream.Push(Token{Type: TokenEOL})
+			stream.Push(&Token{Type: TokenEOL})
 			pos++
 
 		default:
@@ -155,6 +155,6 @@ func until(s string, pos int, delim byte) (string, int, error) {
 }
 
 // Push will add a token to the token buffer
-func (s *TokenStream) Push(t Token) {
+func (s *TokenStream) Push(t *Token) {
 	s.buf = append(s.buf, t)
 }
