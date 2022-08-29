@@ -16,13 +16,14 @@ type Token struct {
 // A TokenStream is a set of tokens
 type TokenStream struct {
 	buf []*Token
+	pos int
 }
 
 const (
-	TokenTerminal = iota
-	TokenNonterminal
-	TokenOpEqual
-	TokenOpBar
+	TokenT = iota
+	TokenNT
+	TokenEq
+	TokenBar
 	TokenEOL
 )
 
@@ -72,11 +73,11 @@ func tokenizeString(s string, stream *TokenStream) error {
 				return fmt.Errorf("expected '::=', got '%s...'", s[pos:pos+3])
 			}
 
-			stream.Push(&Token{Type: TokenOpEqual})
+			stream.push(&Token{Type: TokenEq})
 			pos += 3
 
 		case '|':
-			stream.Push(&Token{Type: TokenOpBar})
+			stream.push(&Token{Type: TokenBar})
 			pos++
 
 		case '"', '\'':
@@ -87,7 +88,7 @@ func tokenizeString(s string, stream *TokenStream) error {
 				return err
 			}
 
-			stream.Push(&Token{Type: TokenTerminal, Value: val})
+			stream.push(&Token{Type: TokenT, Value: val})
 			pos = nextPos
 
 		case '<':
@@ -97,7 +98,7 @@ func tokenizeString(s string, stream *TokenStream) error {
 				return err
 			}
 
-			stream.Push(&Token{Type: TokenNonterminal, Value: val})
+			stream.push(&Token{Type: TokenNT, Value: val})
 			pos = nextPos
 
 		case ' ', '\t', '\r':
@@ -106,7 +107,7 @@ func tokenizeString(s string, stream *TokenStream) error {
 
 		case '\n':
 			// Newlines are significant, and have their own token
-			stream.Push(&Token{Type: TokenEOL})
+			stream.push(&Token{Type: TokenEOL})
 			pos++
 
 		default:
@@ -154,7 +155,46 @@ func until(s string, pos int, delim byte) (string, int, error) {
 	return buf.String(), cur + 1, nil
 }
 
-// Push will add a token to the token buffer
-func (s *TokenStream) Push(t *Token) {
+// push will add a token to the token buffer
+func (s *TokenStream) push(t *Token) {
 	s.buf = append(s.buf, t)
+}
+
+// Next will return the next token according to the pos field. It will also
+// increment pos to the next place. If we've reached the end of the stream, Next
+// will return nil.
+func (s *TokenStream) Next() *Token {
+	if s.Ended() {
+		return nil
+	}
+
+	tok := s.buf[s.pos]
+	s.pos++
+
+	return tok
+}
+
+// Ended will return true if the stream has no more tokens to provide. This is
+// effectively the same as testing if `stream.Next() == nil`.
+func (s *TokenStream) Ended() bool {
+	return s.buf == nil || s.pos >= len(s.buf)
+}
+
+// At will return true if the current tokens match the types given. For example,
+// `stream.At(TokenNonterminal, TokenOpEqual)` would return true for tokens like
+// `<foo> ::=`. We require at least one type, which is why the first parameter
+// is not folded into the types slice.
+func (s *TokenStream) At(first int, types ...int) bool {
+	pos := s.pos
+	list := append([]int{first}, types...)
+
+	for _, typ := range list {
+		if s.Ended() || s.buf[pos].Type != typ {
+			return false
+		}
+
+		pos++
+	}
+
+	return true
 }

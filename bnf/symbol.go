@@ -1,20 +1,30 @@
 package bnf
 
-// A Symbol is one of the components of a BNF rule.
-type Symbol struct {
-	// Terminal is true when this symbol should be treated literally,
-	// and cannot reference another rule.
-	Terminal bool
+// Symbols are data that can be matched against input. This interface is
+// currently empty because I don't yet know what would be that API.
+type Symbol interface {
+}
 
-	// Value is the string value of the symbol, regardless of whether
-	// it's terminal or not.
+// Terminals are symbols which represent literal string values
+type Terminal struct {
 	Value string
 }
 
-// A Sequence is a set of symbols which comprise one path that can allow
-// a Rule to match.
-type Sequence []Symbol
+// Nonterminals are symbols which represent other rules.
+type Nonterminal struct {
+	Name string
+}
 
-func (s *Symbol) Match(g *Grammar, t Token) bool {
-	return false
+// NewTerminal returns a new Terminal object that has a literal value of val
+func NewTerminal(g *Grammar, val string) *Terminal {
+	return &Terminal{
+		Value: val,
+	}
+}
+
+// NewNonterminal returns a new Nonterminal object which is named for val
+func NewNonterminal(g *Grammar, val string) *Nonterminal {
+	return &Nonterminal{
+		Name: val,
+	}
 }
