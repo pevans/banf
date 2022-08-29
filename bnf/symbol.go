@@ -16,14 +16,14 @@ type Nonterminal struct {
 }
 
 // NewTerminal returns a new Terminal object that has a literal value of val
-func NewTerminal(g *Grammar, val string) *Terminal {
+func NewTerminal(_ *Grammar, val string) *Terminal {
 	return &Terminal{
 		Value: val,
 	}
 }
 
 // NewNonterminal returns a new Nonterminal object which is named for val
-func NewNonterminal(g *Grammar, val string) *Nonterminal {
+func NewNonterminal(_ *Grammar, val string) *Nonterminal {
 	return &Nonterminal{
 		Name: val,
 	}

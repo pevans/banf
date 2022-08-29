@@ -15,7 +15,7 @@ type Rule struct {
 // NewRule returns a new rule object with an expression already allocated.
 // (There is no practical time where you would expect to see a rule without a
 // condition.)
-func NewRule(g *Grammar, name string) *Rule {
+func NewRule(_ *Grammar, name string) *Rule {
 	r := &Rule{
 		Name:      name,
 		Condition: new(Expr),

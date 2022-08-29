@@ -10,7 +10,7 @@ import (
 
 type errReader int
 
-func (er errReader) Read(b []byte) (int, error) {
+func (er errReader) Read(_ []byte) (int, error) {
 	return 0, errors.New("errReader")
 }
 
