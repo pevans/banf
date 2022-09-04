@@ -31,27 +31,28 @@ func main() {
 		os.Exit(1)
 	}
 
-	_, err = bnf.NewGrammar(stream)
+	gram, err := bnf.NewGrammar(stream)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "couldn't define grammar: %v\n", err)
 		os.Exit(1)
 	}
 
-	/*
-		err = gram.Build(stream)
+	for _, infile := range flag.Args() {
+		bytes, err := os.ReadFile(infile)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "couldn't build grammar: %v\n", err)
+			fmt.Fprintf(os.Stderr, "couldn't read file %s: %v\n", infile, err)
 			os.Exit(1)
 		}
 
-		for _, infile := range flag.Args() {
-			err := gram.Validate(infile)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "couldn't validate input %s: %v\n", infile, err)
-				os.Exit(1)
-			}
-
-			fmt.Printf("%s is valid\n", infile)
+		matches, err := gram.Match(string(bytes))
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "match attempt for %s errored: %v\n", infile, err)
 		}
-	*/
+
+		if matches {
+			fmt.Printf("%s matches\n", infile)
+		} else {
+			fmt.Printf("%s does not match\n", infile)
+		}
+	}
 }

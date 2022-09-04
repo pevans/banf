@@ -7,15 +7,14 @@ import (
 )
 
 type Grammar struct {
-	Rules     map[string]*Rule
-	Terminals map[string]*Symbol
+	MainRule *Rule
+	Rules    map[string]*Rule
 }
 
 // NewGrammar takes a TokenStream and proceeds to build a grammar from it.
 func NewGrammar(stream *TokenStream) (*Grammar, error) {
 	g := new(Grammar)
 	g.Rules = make(map[string]*Rule)
-	g.Terminals = make(map[string]*Symbol)
 
 	if err := g.Build(stream); err != nil {
 		return nil, errors.Wrap(err, "couldn't build grammar")
@@ -67,7 +66,7 @@ func (g *Grammar) Build(stream *TokenStream) error {
 			if rule != nil && stream.At(TokenNT, TokenEq) {
 				// This is the end of the rule definition, and we see another
 				// rule being defined
-				g.Rules[rule.Name] = rule
+				g.DefineRule(rule)
 				rule = nil
 				expr = nil
 			}
@@ -86,8 +85,24 @@ func (g *Grammar) Build(stream *TokenStream) error {
 	// We might have reached the end of the string without a newline, but still
 	// with a valid rule. We should add it.
 	if rule != nil {
-		g.Rules[rule.Name] = rule
+		g.DefineRule(rule)
 	}
 
 	return nil
+}
+
+func (g *Grammar) DefineRule(r *Rule) {
+	if g.MainRule == nil {
+		g.MainRule = r
+	}
+
+	g.Rules[r.Name] = r
+}
+
+func (g *Grammar) Match(str string) (bool, error) {
+	if g.MainRule == nil {
+		return false, fmt.Errorf("no rules defined for grammar")
+	}
+
+	return g.MainRule.Match(g, NewScanner(str))
 }
