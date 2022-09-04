@@ -3,6 +3,9 @@
 version: '3'
 
 tasks:
+  build: |
+    go build -o ./banf .
+
   lint: |
       golangci-lint run ./...
 
