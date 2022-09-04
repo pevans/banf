@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/pevans/banf/bnf"
+	"github.com/rotisserie/eris"
 )
 
 var grammarFile = flag.String("g", "",
@@ -15,38 +16,33 @@ func main() {
 	flag.Parse()
 
 	if *grammarFile == "" {
-		fmt.Fprintf(os.Stderr, "a grammar file must be supplied\n")
-		os.Exit(1)
+		fail(eris.New("a grammar file must be supplied"))
 	}
 
 	gfile, err := os.Open(*grammarFile)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "unable to read grammar file\n")
-		os.Exit(1)
+		fail(eris.Wrap(err, "couldn't open grammar file"))
 	}
 
 	stream, err := bnf.Tokenize(gfile)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "couldn't tokenize grammar file: %v\n", err)
-		os.Exit(1)
+		fail(eris.Wrap(err, "couldn't tokenize grammar"))
 	}
 
 	gram, err := bnf.NewGrammar(stream)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "couldn't define grammar: %v\n", err)
-		os.Exit(1)
+		fail(eris.Wrap(err, "couldn't define grammar"))
 	}
 
 	for _, infile := range flag.Args() {
 		bytes, err := os.ReadFile(infile)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "couldn't read file %s: %v\n", infile, err)
-			os.Exit(1)
+			fail(eris.Wrapf(err, "couldn't read file %s", infile))
 		}
 
 		matches, err := gram.Match(string(bytes))
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "match attempt for %s errored: %v\n", infile, err)
+			warn(eris.Wrapf(err, "match attempt for %s failed with error", infile))
 		}
 
 		if matches {
@@ -55,4 +51,13 @@ func main() {
 			fmt.Printf("%s does not match\n", infile)
 		}
 	}
+}
+
+func fail(err error) {
+	fmt.Fprintln(os.Stderr, eris.ToString(err, true))
+	os.Exit(1)
+}
+
+func warn(err error) {
+	fmt.Fprintln(os.Stderr, eris.ToString(err, true))
 }

@@ -1,9 +1,10 @@
 package bnf
 
 import (
-	"fmt"
 	"io"
 	"strings"
+
+	"github.com/rotisserie/eris"
 )
 
 // A Token is an element of BNF grammar; it's any single thing we might
@@ -66,11 +67,11 @@ func tokenizeString(s string, stream *TokenStream) error {
 
 		case ':':
 			if pos+3 >= len(s) {
-				return fmt.Errorf("expected '::=', but reached end of input")
+				return eris.Errorf("expected '::=', but reached end of input")
 			}
 
 			if s[pos:pos+3] != "::=" {
-				return fmt.Errorf("expected '::=', got '%s...'", s[pos:pos+3])
+				return eris.Errorf("expected '::=', got '%s...'", s[pos:pos+3])
 			}
 
 			stream.push(&Token{Type: TokenEq})
@@ -111,7 +112,7 @@ func tokenizeString(s string, stream *TokenStream) error {
 			pos++
 
 		default:
-			return fmt.Errorf("unexpected character '%c'", s[pos])
+			return eris.Errorf("unexpected character '%c'", s[pos])
 		}
 	}
 

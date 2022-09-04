@@ -1,8 +1,6 @@
 package bnf
 
-import (
-	"fmt"
-)
+import "github.com/rotisserie/eris"
 
 // An Expr is an expression which would match a conditional branch of logic for
 // a given input. Every symbol in an expression is evaluated using boolean AND
@@ -21,7 +19,7 @@ func (e *Expr) Match(g *Grammar, scan *Scanner) (bool, error) {
 	// You can't really have an expression without any symbols to match, so if
 	// it happens, something's wrong
 	if len(e.Symbols) == 0 {
-		return false, fmt.Errorf("expression has no symbols to match")
+		return false, eris.New("expression has no symbols to match")
 	}
 
 	// Save our current position, just in case the match fails

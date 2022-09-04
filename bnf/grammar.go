@@ -1,9 +1,8 @@
 package bnf
 
 import (
-	"fmt"
-
 	"github.com/pkg/errors"
+	"github.com/rotisserie/eris"
 )
 
 type Grammar struct {
@@ -41,7 +40,7 @@ func (g *Grammar) Build(stream *TokenStream) error {
 		case TokenT:
 			if expr == nil {
 				// At this top level, we don't expect any terminals
-				return fmt.Errorf("unexpected token: terminal")
+				return eris.New("unexpected token: terminal")
 			}
 
 			expr.Symbols = append(expr.Symbols, NewTerminal(g, token.Value))
@@ -56,7 +55,7 @@ func (g *Grammar) Build(stream *TokenStream) error {
 			expr = rule.Condition
 
 			if !stream.At(TokenEq) {
-				return fmt.Errorf("rule must conform to `<%s> ::= ...` syntax", rule.Name)
+				return eris.Errorf("rule must conform to `<%s> ::= ...` syntax", rule.Name)
 			}
 
 			// Since we confirmed we're at an OpEqual, let's get rid of it
@@ -76,7 +75,7 @@ func (g *Grammar) Build(stream *TokenStream) error {
 			expr = expr.OrMatch
 
 		default:
-			return fmt.Errorf(
+			return eris.Errorf(
 				"unexpected token: %+v", token,
 			)
 		}
@@ -101,7 +100,7 @@ func (g *Grammar) DefineRule(r *Rule) {
 
 func (g *Grammar) Match(str string) (bool, error) {
 	if g.MainRule == nil {
-		return false, fmt.Errorf("no rules defined for grammar")
+		return false, eris.New("no rules defined for grammar")
 	}
 
 	return g.MainRule.Match(g, NewScanner(str))

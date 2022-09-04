@@ -1,6 +1,6 @@
 package bnf
 
-import "fmt"
+import "github.com/rotisserie/eris"
 
 // Nonterminals are symbols which represent other rules.
 type Nonterminal struct {
@@ -17,7 +17,7 @@ func NewNonterminal(_ *Grammar, val string) *Nonterminal {
 func (n *Nonterminal) Match(g *Grammar, scan *Scanner) (bool, error) {
 	rule, found := g.Rules[n.Name]
 	if !found {
-		return false, fmt.Errorf("no such rule <%v>", n.Name)
+		return false, eris.Errorf("no such rule <%v>", n.Name)
 	}
 
 	match, err := rule.Match(g, scan)

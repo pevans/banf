@@ -1,17 +1,17 @@
 package bnf
 
 import (
-	"errors"
 	"strings"
 	"testing"
 
+	"github.com/rotisserie/eris"
 	"github.com/stretchr/testify/assert"
 )
 
 type errReader int
 
 func (er errReader) Read(_ []byte) (int, error) {
-	return 0, errors.New("errReader")
+	return 0, eris.New("errReader")
 }
 
 var (
