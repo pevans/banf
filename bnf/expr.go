@@ -15,11 +15,13 @@ type Expr struct {
 	OrMatch *Expr
 }
 
-func (e *Expr) Match(g *Grammar, scan *Scanner) (bool, error) {
+func (e *Expr) Match(g *Grammar, scan *Scanner) *ParseError {
 	// You can't really have an expression without any symbols to match, so if
 	// it happens, something's wrong
 	if len(e.Symbols) == 0 {
-		return false, eris.New("expression has no symbols to match")
+		return &ParseError{
+			Err: eris.New("expression has no symbols to match"),
+		}
 	}
 
 	// Save our current position, just in case the match fails
@@ -28,12 +30,12 @@ func (e *Expr) Match(g *Grammar, scan *Scanner) (bool, error) {
 	match := true
 
 	for _, sym := range e.Symbols {
-		symMatch, err := sym.Match(g, scan)
-		if err != nil {
-			return false, err
+		perr := sym.Match(g, scan)
+		if perr != nil && perr.Err != nil {
+			return perr
 		}
 
-		match = match && symMatch
+		match = match && perr == nil
 
 		// Short-circuit if things didn't work out
 		if !match {
@@ -44,7 +46,7 @@ func (e *Expr) Match(g *Grammar, scan *Scanner) (bool, error) {
 	// If we looped over every symbol and they all matched, then we're done and
 	// can return here
 	if match {
-		return true, nil
+		return nil
 	}
 
 	// If we failed to match anything, we can try the next expression
@@ -56,5 +58,7 @@ func (e *Expr) Match(g *Grammar, scan *Scanner) (bool, error) {
 	}
 
 	// At this point, we just need to give up
-	return false, nil
+	return &ParseError{
+		Incidence: scan.Show(),
+	}
 }

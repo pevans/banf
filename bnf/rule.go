@@ -24,6 +24,6 @@ func NewRule(_ *Grammar, name string) *Rule {
 	return r
 }
 
-func (r *Rule) Match(g *Grammar, scan *Scanner) (bool, error) {
+func (r *Rule) Match(g *Grammar, scan *Scanner) *ParseError {
 	return r.Condition.Match(g, scan)
 }

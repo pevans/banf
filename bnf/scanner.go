@@ -1,6 +1,10 @@
 package bnf
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/pevans/banf/position"
+)
 
 // Notes from last night: we should use a string, not a reader
 // We might still want to do an offset stack? Unsure. Probably.
@@ -17,6 +21,10 @@ func NewScanner(s string) *Scanner {
 		off:      0,
 		offStack: []int{},
 	}
+}
+
+func (s *Scanner) Show() string {
+	return position.Show(s.str, s.off)
 }
 
 func (s *Scanner) StartsWith(input string) bool {

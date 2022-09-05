@@ -14,16 +14,24 @@ func NewNonterminal(_ *Grammar, val string) *Nonterminal {
 	}
 }
 
-func (n *Nonterminal) Match(g *Grammar, scan *Scanner) (bool, error) {
+func (n *Nonterminal) Match(g *Grammar, scan *Scanner) *ParseError {
 	rule, found := g.Rules[n.Name]
 	if !found {
-		return false, eris.Errorf("no such rule <%v>", n.Name)
+		return &ParseError{
+			Err: eris.Errorf("no such rule <%v>", n.Name),
+		}
 	}
 
-	match, err := rule.Match(g, scan)
-	if err != nil {
-		return false, err
+	perr := rule.Match(g, scan)
+	if perr != nil && perr.Err != nil {
+		return perr
 	}
 
-	return match, nil
+	if perr != nil {
+		return &ParseError{
+			Incidence: scan.Show(),
+		}
+	}
+
+	return nil
 }

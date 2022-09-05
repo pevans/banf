@@ -24,7 +24,7 @@ const manyRules = `
 func TestBuild(t *testing.T) {
 	works := func(t *testing.T, bnf string) *Grammar {
 		s := new(TokenStream)
-		assert.NoError(t, tokenizeString(bnf, s))
+		assert.Nil(t, tokenizeString(bnf, s))
 
 		g, err := NewGrammar(s)
 		assert.NoError(t, err)

@@ -98,9 +98,11 @@ func (g *Grammar) DefineRule(r *Rule) {
 	g.Rules[r.Name] = r
 }
 
-func (g *Grammar) Match(str string) (bool, error) {
+func (g *Grammar) Match(str string) *ParseError {
 	if g.MainRule == nil {
-		return false, eris.New("no rules defined for grammar")
+		return &ParseError{
+			Err: eris.New("no rules defined for grammar"),
+		}
 	}
 
 	return g.MainRule.Match(g, NewScanner(str))

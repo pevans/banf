@@ -18,9 +18,9 @@ func TestNonterminalMatch(t *testing.T) {
 	non := NewNonterminal(g, "xyz")
 
 	t.Run("error if no rule found", func(t *testing.T) {
-		did, err := non.Match(g, s)
-		assert.Error(t, err)
-		assert.False(t, did)
+		perr := non.Match(g, s)
+		assert.NotNil(t, perr)
+		assert.Error(t, perr.Err)
 	})
 
 	// missing: test a rule
@@ -33,16 +33,16 @@ func TestNonterminalMatch(t *testing.T) {
 	g.Rules["xyz"] = rule
 
 	t.Run("test a working rule", func(t *testing.T) {
-		did, err := non.Match(g, s)
-		assert.True(t, did)
-		assert.NoError(t, err)
+		perr := non.Match(g, s)
+		assert.Nil(t, perr)
 	})
 
 	rule = NewRule(g, "xyz")
 	g.Rules["xyz"] = rule
 
 	t.Run("test a broken rule", func(t *testing.T) {
-		_, err := non.Match(g, s)
-		assert.Error(t, err)
+		perr := non.Match(g, s)
+		assert.NotNil(t, perr)
+		assert.Error(t, perr.Err)
 	})
 }

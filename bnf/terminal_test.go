@@ -16,19 +16,17 @@ func TestTerminalMatch(t *testing.T) {
 
 	term := NewTerminal(g, "ab")
 
-	did, err := term.Match(g, s)
-	assert.NoError(t, err)
-	assert.True(t, did)
+	perr := term.Match(g, s)
+	assert.Nil(t, perr)
 
 	t.Run("did it fastforward?", func(t *testing.T) {
-		did, err = term.Match(g, s)
-		assert.NoError(t, err)
-		assert.False(t, did)
+		perr := term.Match(g, s)
+		assert.NotNil(t, perr)
+		assert.NoError(t, perr.Err)
 
 		c := NewTerminal(g, "c")
 
-		did, err = c.Match(g, s)
-		assert.NoError(t, err)
-		assert.True(t, did)
+		perr = c.Match(g, s)
+		assert.Nil(t, perr)
 	})
 }

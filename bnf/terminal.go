@@ -12,12 +12,18 @@ func NewTerminal(_ *Grammar, val string) *Terminal {
 	}
 }
 
-func (t *Terminal) Match(_ *Grammar, scan *Scanner) (bool, error) {
+func (t *Terminal) Match(_ *Grammar, scan *Scanner) *ParseError {
 	match := scan.StartsWith(t.Value)
 
 	if match {
 		scan.FastForward(len(t.Value))
 	}
 
-	return match, nil
+	if !match {
+		return &ParseError{
+			Incidence: scan.Show(),
+		}
+	}
+
+	return nil
 }

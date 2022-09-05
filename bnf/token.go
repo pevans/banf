@@ -4,6 +4,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/pevans/banf/position"
 	"github.com/rotisserie/eris"
 )
 
@@ -31,25 +32,26 @@ const (
 // Tokenize will take any input (accessible from a Reader) and produce a
 // token stream. If an error occurs while parsing, it will return a
 // partial token stream.
-func Tokenize(r io.Reader) (*TokenStream, error) {
+func Tokenize(r io.Reader) (*TokenStream, *ParseError) {
 	stream := new(TokenStream)
 
 	buf, err := io.ReadAll(r)
 	if err != nil {
-		return stream, err
+		return stream, &ParseError{Err: err}
 	}
 
-	err = tokenizeString(string(buf), stream)
-	return stream, err
+	perr := tokenizeString(string(buf), stream)
+	return stream, perr
 }
 
 // tokenizeString will produce a stream of tokens from a given string.
 // If an error is occurred, it will produce a partial token stream that
 // contains everything until the error.
-func tokenizeString(s string, stream *TokenStream) error {
+func tokenizeString(s string, stream *TokenStream) *ParseError {
 	var (
-		pos = 0
-		end = len(s)
+		pos  = 0
+		end  = len(s)
+		line int
 	)
 
 	// Nothing to do
@@ -67,11 +69,19 @@ func tokenizeString(s string, stream *TokenStream) error {
 
 		case ':':
 			if pos+3 >= len(s) {
-				return eris.Errorf("expected '::=', but reached end of input")
+				return &ParseError{
+					Line:      line,
+					Incidence: position.Show(s, pos),
+					Err:       eris.New("expected '::=', but reached end of input"),
+				}
 			}
 
 			if s[pos:pos+3] != "::=" {
-				return eris.Errorf("expected '::=', got '%s...'", s[pos:pos+3])
+				return &ParseError{
+					Line:      line,
+					Incidence: position.Show(s, pos),
+					Err:       eris.Errorf("expected '::=', got '%s...'", s[pos:pos+3]),
+				}
 			}
 
 			stream.push(&Token{Type: TokenEq})
@@ -86,7 +96,11 @@ func tokenizeString(s string, stream *TokenStream) error {
 			// mark
 			val, nextPos, err := until(s, pos+1, s[pos])
 			if err != nil {
-				return err
+				return &ParseError{
+					Line:      line,
+					Incidence: position.Show(s, pos),
+					Err:       err,
+				}
 			}
 
 			stream.push(&Token{Type: TokenT, Value: val})
@@ -96,7 +110,11 @@ func tokenizeString(s string, stream *TokenStream) error {
 			// Define a nonterminal symbol as '<...>'
 			val, nextPos, err := until(s, pos+1, '>')
 			if err != nil {
-				return err
+				return &ParseError{
+					Line:      line,
+					Incidence: position.Show(s, pos),
+					Err:       err,
+				}
 			}
 
 			stream.push(&Token{Type: TokenNT, Value: val})
@@ -112,7 +130,11 @@ func tokenizeString(s string, stream *TokenStream) error {
 			pos++
 
 		default:
-			return eris.Errorf("unexpected character '%c'", s[pos])
+			return &ParseError{
+				Line:      line,
+				Incidence: position.Show(s, pos),
+				Err:       eris.Errorf("unexpected character '%c'", s[pos]),
+			}
 		}
 	}
 

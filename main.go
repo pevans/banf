@@ -24,9 +24,11 @@ func main() {
 		fail(eris.Wrap(err, "couldn't open grammar file"))
 	}
 
-	stream, err := bnf.Tokenize(gfile)
-	if err != nil {
-		fail(eris.Wrap(err, "couldn't tokenize grammar"))
+	stream, perr := bnf.Tokenize(gfile)
+	if perr != nil {
+		perr.File = *grammarFile
+		perr.Err = eris.Wrap(perr.Err, "couldn't tokenize grammar")
+		fail(perr)
 	}
 
 	gram, err := bnf.NewGrammar(stream)
@@ -40,15 +42,18 @@ func main() {
 			fail(eris.Wrapf(err, "couldn't read file %s", infile))
 		}
 
-		matches, err := gram.Match(string(bytes))
-		if err != nil {
-			warn(eris.Wrapf(err, "match attempt for %s failed with error", infile))
+		perr := gram.Match(string(bytes))
+		if perr != nil && perr.Err != nil {
+			perr.File = infile
+			perr.Err = eris.Wrapf(perr.Err, "match attempt for %s failed with error", infile)
+			warn(perr)
 		}
 
-		if matches {
+		if perr == nil {
 			fmt.Printf("%s matches\n", infile)
 		} else {
 			fmt.Printf("%s does not match\n", infile)
+			warn(perr)
 		}
 	}
 }
