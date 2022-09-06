@@ -1,5 +1,7 @@
 package bnf
 
+import "github.com/pevans/banf/blog"
+
 // A Rule is a named record that encapsulates some conditional logic for a given
 // set of input. It's the entirety of a `<foo> ::= "..."` construct in BNF.
 type Rule struct {
@@ -25,5 +27,6 @@ func NewRule(_ *Grammar, name string) *Rule {
 }
 
 func (r *Rule) Match(g *Grammar, scan *Scanner) *ParseError {
+	blog.Info("attempting match on <%s>", r.Name)
 	return r.Condition.Match(g, scan)
 }

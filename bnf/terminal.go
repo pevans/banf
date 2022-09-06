@@ -1,5 +1,7 @@
 package bnf
 
+import "github.com/pevans/banf/blog"
+
 // Terminals are symbols which represent literal string values
 type Terminal struct {
 	Value string
@@ -13,6 +15,8 @@ func NewTerminal(_ *Grammar, val string) *Terminal {
 }
 
 func (t *Terminal) Match(_ *Grammar, scan *Scanner) *ParseError {
+	blog.Info("attempting match on '%s'", t.Value)
+
 	match := scan.StartsWith(t.Value)
 
 	if match {
